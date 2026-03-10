@@ -14,11 +14,12 @@ tags: [Redis, SpringBoot, Architecture, Optimization]
 이 시간대에는 전체 시스템 트래픽이 약 **100 TPS** 까지 증가하며, 핵심 기능인 **프리랜서 추천 로직**에도 많은 요청이 몰립니다.
 
 기존 추천 로직은 DB 기반으로 동작하고 있었는데, 트래픽이 증가하면서 **DB 조회 부하와 응답 지연 문제**가 발생했습니다.  
-이를 해결하기 위해 **Redis Sorted Set과 사전 계산(pre-computation) 전략을 도입한 과정**을 정리했습니다.
+이를 해결하기 위해 **Redis Sorted Set과 사전 계산 전략을 도입한 과정**을 정리했습니다.
 
 ---
 
 ## 문제 상황: 피크 타임에 집중되는 추천 조회
+<img src="/assets/img/posts/redis-sorted-set-freelancer-recommendation/img.png" width="50%" alt="피크 타임 추천 조회 트래픽 현황">
 
 전체 트래픽이 모두 추천 로직으로 향하는 것은 아니지만  
 추천 요청이 전체 트래픽의 **30%**라고 가정하면 다음과 같은 상황이 발생합니다. <br>
@@ -117,24 +118,31 @@ Redis는 다음과 같은 장점이 있습니다.
 
 ## 해결 전략: 사전 계산 + Redis Sorted Set
 
+### Redis 도입 후 구조
+<img src="/assets/img/posts/redis-sorted-set-freelancer-recommendation/img_1.png" width="50%" alt="Redis 도입 후 추천 로직 구조 다이어그램">
+
 ### Redis Sorted Set (ZSET) 활용
 
 Redis Sorted Set은 score 기반으로 자동 정렬되는 자료구조입니다.
 
 프리랜서의 종합 점수(리뷰, 등급, 활동량 등)를 미리 계산하여  
 **Redis ZSET에 저장**하도록 설계했습니다. <br>
-ZADD freelancer:ranking score freelancerId
+`ZADD freelancer:ranking score freelancerId` <br>
 이제 추천 요청이 들어오면 다음과 같이 상위 후보만 조회합니다.
 
+```text
+# 점수가 높은 순으로 0위부터 19위까지 조회
 ZREVRANGE freelancer:ranking 0 19
+```
 Sorted Set 조회의 시간 복잡도는 O(log(N) + M)으로 DB Full Scan 대비 훨씬 효율적인 성능을 제공합니다.
 
 ---
 
 ## 하이브리드 업데이트 전략
-
 추천 점수는 지속적으로 변하는 값이기 때문에  
 다음과 같은 **하이브리드 업데이트 전략**을 적용했습니다.
+
+<img src="/assets/img/posts/redis-sorted-set-freelancer-recommendation/img_2.png" width="50%" alt="하이브리드 업데이트 전략 다이어그램">
 
 
 ### 실시간 이벤트 업데이트
@@ -144,7 +152,15 @@ Sorted Set 조회의 시간 복잡도는 O(log(N) + M)으로 DB Full Scan 대비
 
 ### 주기적 전체 동기화 (Hourly Sync)
 
-매시간 전체 점수를 재계산하여 Redis 데이터를 갱신합니다.
+매시간 전체 점수를 재계산하여 Redis 데이터를 갱신합니다. <br>
+배치는 **1시간에 1회 실행되기 때문에 하루 기준 총 24회 수행됩니다.** <br>
+따라서 기존처럼 요청마다 DB를 조회하는 구조가 아니라  <br>
+**하루 24번의 배치 작업만 DB 전체 데이터를 조회하도록 변경되었습니다.**
+
+#### 1시간인 이유
+추천 점수는 실시간 정확도가 절대적으로 중요한 데이터가 아니기 때문에  
+1시간 단위의 Eventual Consistency 모델을 선택했습니다.
+
 
 이 과정은 다음 문제를 해결하기 위한 설계입니다.
 
@@ -164,9 +180,13 @@ Redis는 인메모리 시스템이기 때문에 장애 가능성도 고려해야
 - 서비스 완전 중단 방지
 - 핵심 기능 지속 제공
 
-이라는 관점에서 **방어적 설계(defensive design)** 를 적용했습니다.
+이라는 관점에서 **방어적 설계** 를 적용했습니다.
 
 ---
+
+## 최종 아키텍처
+<img src="/assets/img/posts/redis-sorted-set-freelancer-recommendation/img_3.png" width="50%" alt="Redis Sorted Set 기반 최종 아키텍처 다이어그램">
+
 
 ## 수치로 보는 개선 효과
 
@@ -181,7 +201,7 @@ Redis는 인메모리 시스템이기 때문에 장애 가능성도 고려해야
 | 구분 | Full Scan 횟수 |
 |-----|----------------|
 기존 | 약 432,000 |
-개선 | 하루 24회 |
+개선 | 하루 24회 (Hourly Sync 배치 기준) |
 
 즉 DB 전체 탐색 횟수를 **약 18,000배 감소**시킬 수 있었습니다.
 
@@ -209,4 +229,4 @@ Redis는 인메모리 시스템이기 때문에 장애 가능성도 고려해야
 - 정확성과 성능 사이에서 선택해야 하는 **의도적인 트레이드오프**
 - 장애 상황에서도 서비스가 동작하도록 하는 **Fallback 설계**
 
-이번 경험을 통해 **사전 계산(pre-computation) 전략과 Redis 자료구조를 활용한 성능 최적화의 중요성**을 다시 한번 이해할 수 있었습니다.
+이번 경험을 통해 **사전 계산 전략과 Redis 자료구조를 활용한 성능 최적화의 중요성**을 다시 한번 이해할 수 있었습니다.

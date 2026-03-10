@@ -45,7 +45,7 @@ public GifticonOrderCreateResponse execute(GifticonOrderCreateRequest request, L
 
 ### 개선된 구조 (After)
 주문 처리 흐름은 다음과 같이 세 단계로 분리됩니다. <br> <br>
-<img src="/assets/img/posts/transaction-separation-external-api/img_1.png" width="50%"> <br>
+<img src="/assets/img/posts/transaction-separation-external-api/img_1.png" width="50%" alt="개선된 주문 처리 흐름 다이어그램"> <br>
 
 ```java
 public GifticonOrderCreateResponse execute(GifticonOrderCreateRequest request, Long userSeq) {

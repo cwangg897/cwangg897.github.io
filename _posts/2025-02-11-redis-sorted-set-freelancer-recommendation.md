@@ -19,7 +19,7 @@ tags: [Redis, SpringBoot, Architecture, Optimization]
 ---
 
 ## 문제 상황: 피크 타임에 집중되는 추천 조회
-<img src="/assets/img/posts/redis-sorted-set-freelancer-recommendation/img.png" width="50%" alt="피크 타임 추천 조회 트래픽 현황">
+<img src="/assets/img/posts/redis-sorted-set-freelancer-recommendation/img.png" width="100%" alt="피크 타임 추천 조회 트래픽 현황">
 
 전체 트래픽이 모두 추천 로직으로 향하는 것은 아니지만  
 추천 요청이 전체 트래픽의 **30%**라고 가정하면 다음과 같은 상황이 발생합니다. <br>
@@ -119,7 +119,7 @@ Redis는 다음과 같은 장점이 있습니다.
 ## 해결 전략: 사전 계산 + Redis Sorted Set
 
 ### Redis 도입 후 구조
-<img src="/assets/img/posts/redis-sorted-set-freelancer-recommendation/img_1.png" width="50%" alt="Redis 도입 후 추천 로직 구조 다이어그램">
+<img src="/assets/img/posts/redis-sorted-set-freelancer-recommendation/img_1.png" width="100%" alt="Redis 도입 후 추천 로직 구조 다이어그램">
 
 ### Redis Sorted Set (ZSET) 활용
 
@@ -142,7 +142,7 @@ Sorted Set 조회의 시간 복잡도는 O(log(N) + M)으로 DB Full Scan 대비
 추천 점수는 지속적으로 변하는 값이기 때문에  
 다음과 같은 **하이브리드 업데이트 전략**을 적용했습니다.
 
-<img src="/assets/img/posts/redis-sorted-set-freelancer-recommendation/img_2.png" width="50%" alt="하이브리드 업데이트 전략 다이어그램">
+<img src="/assets/img/posts/redis-sorted-set-freelancer-recommendation/img_2.png" width="100%" alt="하이브리드 업데이트 전략 다이어그램">
 
 
 ### 실시간 이벤트 업데이트

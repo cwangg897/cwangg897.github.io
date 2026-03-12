@@ -254,3 +254,8 @@ warm-up은 효과가 확실했지만, 배포 시간이 늘어나는 trade-off가
 
 특히 배포 직후 구간은 관측되지 않기 쉬운 성능 공백 구간이며,
 이 구간을 제어하는 것이 운영 안정성에서 중요한 요소라고 생각합니다.
+
+## 참고 자료
+
+- https://tech.kakaopay.com/post/jvm-warm-up/
+- https://engineering.linecorp.com/ko/blog/apply-warm-up-in-spring-boot-and-kubernetes

@@ -18,7 +18,7 @@ tags: [Java, SpringBoot, Redis, Redisson, MySQL, Concurrency]
 ## 문제 상황: 단일 Row 락 경합으로 인한 병목
 
 기존 구조는 아래와 같았습니다.
-<img src="/assets/img/posts/semaphore/img_2.png" width="80%" alt="기존 DB 락 기반 선착순 수락 처리 구조 다이어그램">
+<img src="/assets/img/posts/semaphore/img_2.png" width="50%" alt="기존 DB 락 기반 선착순 수락 처리 구조 다이어그램">
 
 선착순 시나리오 특성상 수백 명이 같은 업무 요청에 동시에 접근하면  
 대부분의 요청이 DB 락 대기열에서 대기하게 됩니다.
@@ -72,11 +72,11 @@ public MatchAcceptResult accept(Long requestId, Long freelancerId) {
 
 ### 왜 `RLock`이 아니라 세마포어를 선택했는가
 `RLock`은 사실상 단일 임계구역을 순차 처리하는 모델에 가깝습니다.
-<img src="/assets/img/posts/semaphore/img.png" width="60%" alt="RLock 기반 단일 임계구역 순차 처리 개념 다이어그램">
+<img src="/assets/img/posts/semaphore/img.png" width="100%" alt="RLock 기반 단일 임계구역 순차 처리 개념 다이어그램">
 
 이번 케이스는 "한 명만 통과"가 아니라 "정해진 수만큼 동시 진입 허용"이 필요한 문제였기 때문에
 슬롯 기반 제어가 가능한 세마포어가 더 적합했습니다.
-<img src="/assets/img/posts/semaphore/img_1.png" width="60%" alt="세마포어 슬롯 기반 동시 진입 제어 개념 다이어그램">
+<img src="/assets/img/posts/semaphore/img_1.png" width="100%" alt="세마포어 슬롯 기반 동시 진입 제어 개념 다이어그램">
 
 ### 왜 `RPermitExpirableSemaphore`를 최종 선택했는가
 
@@ -125,10 +125,14 @@ public MatchAcceptResult accept(Long requestId, Long freelancerId) {
 
 - p95 응답 시간: **30ms 이내 유지**
 - 순간 트래픽 급증 시 지연 현상: **해소**
-- "매칭 수락 실패" 관련 CS: **0건 달성**
 
 특히 효과가 컸던 지점은  
 **DB 부하를 애플리케이션 바깥(Redis 레이어)으로 격리해 락 대기열 자체를 줄인 것**이었습니다.
+
+## 운영 결과
+
+운영 환경에서는 "매칭 수락 실패" 관련 CS가 **0건**이었고,  
+마감/선착순 구간의 체감 지연 이슈도 크게 줄었습니다.
 
 ---
 

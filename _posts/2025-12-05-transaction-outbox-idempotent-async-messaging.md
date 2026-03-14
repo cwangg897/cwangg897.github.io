@@ -1,6 +1,6 @@
 ---
 title: "외부 API 장애를 격리하는 Transaction Outbox + 멱등 비동기 파이프라인 구축기"
-date: 2025-12-5 00:00:00 +0900
+date: 2025-09-15 00:00:00 +0900
 categories: [Spring, Architecture]
 tags: [Java, SpringBoot, TransactionOutbox, Async, Idempotency]
 ---

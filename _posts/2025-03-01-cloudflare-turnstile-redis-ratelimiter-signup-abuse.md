@@ -159,7 +159,7 @@ Rate Limiting 알고리즘은 대표적으로 `Fixed Window`, `Sliding Window`, 
 
 아래처럼 생각하면 이해가 쉽습니다.
 
-<img src="/assets/img/posts/ratelimiter/img_3.png" width="60%" alt="Sliding Window 기반 요청 처리 흐름 다이어그램">
+<img src="/assets/img/posts/ratelimiter/img_3.png" width="50%" alt="Sliding Window 기반 요청 처리 흐름 다이어그램">
 
 ### 복합 조건은 하나의 긴 key보다 정책별 key로 나누는 편이 더 현실적이었다
 
@@ -291,7 +291,6 @@ public DefaultRedisScript<Long> slidingWindowScript() {
 다층 방어 적용 후 다음 결과를 확인했습니다.
 
 - 매크로/어뷰징 계정 생성: **일 1만 건 이상 -> 약 0건으로 수렴**
-- 공용 네트워크 오탐: 유의미하게 감소
 - 정상 가입 전환율: 유지
 
 핵심은 "강하게 막는 것"이 아니라 **정상 흐름을 해치지 않으면서 악성 자동화만 정확히 비용 증가시키는 구조**를 만든 것입니다.

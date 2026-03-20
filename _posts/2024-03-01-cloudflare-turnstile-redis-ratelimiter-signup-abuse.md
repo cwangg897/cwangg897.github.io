@@ -1,6 +1,6 @@
 ---
 title: "Cloudflare Turnstile과 Redis RateLimiter로 회원가입 어뷰징 0건 만들기"
-date: 2025-03-01 00:00:00 +0900
+date: 2024-03-01 00:00:00 +0900
 categories: [Security, Architecture]
 tags: [Java, SpringBoot, Redis, Cloudflare, RateLimiter, AbuseDetection]
 ---

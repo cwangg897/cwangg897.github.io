@@ -1,5 +1,5 @@
 ---
-title: "Redisson 세마포어로 선착순 매칭 병목 해소하기"
+title: "Redisson 세마포어로 선착순 매칭 수락 병목 해소하기"
 date: 2025-10-31 00:00:00 +0900
 categories: [Spring, Architecture]
 tags: [Java, SpringBoot, Redis, Redisson, MySQL, Concurrency]

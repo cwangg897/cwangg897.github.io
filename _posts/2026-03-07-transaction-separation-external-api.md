@@ -14,6 +14,11 @@ tags: [SpringBoot, Transaction, CAP]
 ## 문제 상황: 모든 것을 하나의 트랜잭션으로 묶었을 때의 리스크
 
 초기 설계는 단순했습니다. 모든 과정을 하나의 `@Transactional`로 묶어 원자성(Atomicity)을 보장하려 했습니다.
+
+### 기존 구조 (Before)
+다음은 초기 구조(단일 트랜잭션 + 외부 API 호출 포함)입니다. <br> <br>
+<img src="/assets/img/posts/transaction-separation-external-api/img_2.png" width="80%" alt="Before 주문 처리 흐름 다이어그램"> <br>
+
 ```java
 @Transactional 
 public GifticonOrderCreateResponse execute(GifticonOrderCreateRequest request, Long userSeq) {
@@ -41,11 +46,9 @@ public GifticonOrderCreateResponse execute(GifticonOrderCreateRequest request, L
 **상태 기반(State-driven) 설계를 사용하는 것이 더 적절한 접근이라고 생각했습니다.**
 
 
-
-
 ### 개선된 구조 (After)
-주문 처리 흐름은 다음과 같이 세 단계로 분리됩니다. <br> <br>
-<img src="/assets/img/posts/transaction-separation-external-api/img_1.png" width="50%" alt="개선된 주문 처리 흐름 다이어그램"> <br>
+주문 처리 흐름은 다음과 같이 세 단계로 분리됩니다.
+<img src="/assets/img/posts/transaction-separation-external-api/img_1.png" width="80%" alt="After 주문 처리 흐름 다이어그램">
 
 ```java
 public GifticonOrderCreateResponse execute(GifticonOrderCreateRequest request, Long userSeq) {

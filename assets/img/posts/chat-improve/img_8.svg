@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="780" viewBox="0 0 1400 780" role="img" aria-label="WebSocket Redis Pub/Sub 채팅 파이프라인 기존 구조">
+  <defs>
+    <style>
+      .title { font: 700 36px 'Pretendard', 'Noto Sans KR', sans-serif; fill: #1f2937; }
+      .label { font: 600 24px 'Pretendard', 'Noto Sans KR', sans-serif; fill: #111827; }
+      .small { font: 500 20px 'Pretendard', 'Noto Sans KR', sans-serif; fill: #374151; }
+      .warn { font: 700 20px 'Pretendard', 'Noto Sans KR', sans-serif; fill: #b91c1c; }
+      .box { fill: #ffffff; stroke: #334155; stroke-width: 3; rx: 20; }
+      .danger { fill: #fee2e2; stroke: #ef4444; stroke-width: 3; rx: 20; }
+      .arrow { stroke: #475569; stroke-width: 4; fill: none; marker-end: url(#arrowhead); }
+      .bg { fill: #f8fafc; }
+    </style>
+    <marker id="arrowhead" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0, 12 4, 0 8" fill="#475569" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1400" height="780" />
+<!--  <text class="title" x="700" y="64" text-anchor="middle">Before: 기존 WebSocket + Redis Pub/Sub 채팅 구조</text>-->
+
+  <rect class="box" x="70" y="280" width="220" height="120" />
+  <text class="label" x="180" y="350" text-anchor="middle">WebSocket API</text>
+
+  <rect class="box" x="390" y="280" width="220" height="120" />
+  <text class="label" x="500" y="350" text-anchor="middle">Redis Pub/Sub</text>
+
+  <rect class="danger" x="710" y="230" width="280" height="220" />
+  <text class="label" x="850" y="300" text-anchor="middle">단일 Listener</text>
+  <text class="small" x="850" y="338" text-anchor="middle">DB 저장 + Push +</text>
+  <text class="small" x="850" y="370" text-anchor="middle">WebSocket 송신까지 처리</text>
+  <text class="warn" x="850" y="412" text-anchor="middle">병목 / 지연 누적</text>
+
+  <rect class="box" x="1090" y="280" width="220" height="120" />
+  <text class="label" x="1200" y="350" text-anchor="middle">Client</text>
+
+  <line class="arrow" x1="290" y1="340" x2="390" y2="340" />
+  <line class="arrow" x1="610" y1="340" x2="710" y2="340" />
+  <line class="arrow" x1="990" y1="340" x2="1090" y2="340" />
+
+  <rect class="danger" x="420" y="520" width="560" height="170" />
+  <text class="warn" x="700" y="575" text-anchor="middle">문제점</text>
+  <text class="small" x="700" y="615" text-anchor="middle">1) 수신/처리를 Listener 한곳에 집중</text>
+  <text class="small" x="700" y="645" text-anchor="middle">2) Buffering/재처리 경로 부재</text>
+  <text class="small" x="700" y="675" text-anchor="middle">3) 트래픽 스파이크 시 메시지 지연/유실 리스크</text>
+</svg>

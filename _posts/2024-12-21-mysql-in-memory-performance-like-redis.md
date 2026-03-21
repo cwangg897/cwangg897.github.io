@@ -1,6 +1,6 @@
 ---
 title: "MySQL을 Redis처럼 메모리에서 돌리면 얼마나 빨라질까?"
-date: 2025-07-21 00:00:00 +0900
+date: 2024-12-21 00:00:00 +0900
 categories: [Database, Performance]
 tags: [MySQL, Redis, InMemory]
 ---

@@ -1,6 +1,6 @@
 ---
 title: "Redis Sorted Set으로 매칭(추천) 성능 최적화하기"
-date: 2025-02-11 19:09:00 +0900
+date: 2025-04-11 19:09:00 +0900
 categories: [Performance]
 tags: [Redis, SpringBoot, Architecture, Optimization]
 ---

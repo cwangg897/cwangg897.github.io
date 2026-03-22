@@ -49,7 +49,7 @@ tags: [Java, SpringBoot, Redis, Redisson, MySQL, Concurrency]
 
 요청마다 먼저 `RPermitExpirableSemaphore.tryAcquire()`를 수행해 "진입권"을 얻은 요청만 DB 트랜잭션으로 보냅니다.
 
-예시코드 - 회사코드를 완벽하게 공개하진않았습니다
+예시 코드 - 회사 코드를 완벽하게 공개하진 않았습니다
 ```java
 public MatchAcceptResult accept(Long requestId, Long freelancerId) {
     String key = "match:accept:semaphore:" + requestId;

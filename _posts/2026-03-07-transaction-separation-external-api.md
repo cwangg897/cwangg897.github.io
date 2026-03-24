@@ -1,5 +1,5 @@
 ---
-title: "최종적 일관성과 트랜잭션 분리를 통한 외부 API 호출 격리: 주문&결제 아키텍처 개선기"
+title: "최종적 일관성과 트랜잭션 분리를 통한 외부 API 호출 격리: 주문/발급 아키텍처 구축기"
 date: 2026-03-07 00:00:00 +0900
 categories: [Spring, Architecture]
 tags: [SpringBoot, Transaction, CAP]
@@ -17,7 +17,7 @@ tags: [SpringBoot, Transaction, CAP]
 
 ### 기존 구조 (Before)
 다음은 초기 구조(단일 트랜잭션 + 외부 API 호출 포함)입니다. <br> <br>
-<img src="/assets/img/posts/transaction-separation-external-api/img_2.png" width="80%" alt="Before 주문 처리 흐름 다이어그램"> <br>
+<img src="/assets/img/posts/transaction-separation-external-api/img.png" width="80%" alt="Before 주문 처리 흐름 다이어그램"> <br>
 
 ```java
 @Transactional 
@@ -26,17 +26,17 @@ public GifticonOrderCreateResponse execute(GifticonOrderCreateRequest request, L
     GifticonOrder gifticonOrder = gifticonOrderService.initOrder(request, userSeq);
 
     // 2. 외부 API 호출 (KT 기프티쇼 발급 요청)
-    GifticonPaymentResponse response = gifticonOrderService.requestPayment(gifticonOrder);
+    GifticonIssueResponse response = gifticonOrderService.requestIssue(gifticonOrder);
 
     // 3. 결과 업데이트 (DB 반영)
-    gifticonOrderService.savePaymentResult(gifticonOrder, response);
+    gifticonOrderService.saveIssueResult(gifticonOrder, response);
 
     return new GifticonOrderCreateResponse(gifticonOrder.getId(), response.isSuccess(), response.getMessage());
 }
 ```
 
 이 구조의 치명적인 결함
-1. DB 커넥션 풀 고갈: 외부 API 응답이 5초 걸리면, DB 커넥션도 5초간 점유됩니다. 트래픽이 몰릴 때 외부 지연이 발생하면 순식간에 Connection Timeout이 발생하며 결제와 상관없는 다른 서비스(공지사항, 마이페이지 등)까지 마비됩니다.
+1. DB 커넥션 풀 고갈: 외부 API 응답이 5초 걸리면, DB 커넥션도 5초간 점유됩니다. 트래픽이 몰릴 때 외부 지연이 발생하면 순식간에 Connection Timeout이 발생하며 주문/발급과 상관없는 다른 서비스(공지사항, 마이페이지 등)까지 마비됩니다.
 2. 원자성(Atomicity)의 역설: 외부 API 호출은 성공했는데, 이후 DB 저장 단계에서 예외가 발생하면 주문 데이터는 롤백됩니다. 하지만 기프티콘은 이미 외부에서 발급된 상태가 되어 실질적인 데이터 불일치가 발생합니다.
 
 
@@ -56,10 +56,10 @@ public GifticonOrderCreateResponse execute(GifticonOrderCreateRequest request, L
     GifticonOrder gifticonOrder = gifticonOrderService.initOrder(request, userSeq);
 
     // [Phase 2] 외부 API 호출: 트랜잭션 없이 순수 네트워크 통신 (DB 커넥션 미점유)
-    GifticonPaymentResponse response = gifticonOrderService.requestPayment(gifticonOrder);
+    GifticonIssueResponse response = gifticonOrderService.requestIssue(gifticonOrder);
 
     // [Phase 3] 결과 저장: 새로운 트랜잭션을 열어 상태 업데이트 (주문 상태: COMPLETED/FAILED)
-    gifticonOrderService.savePaymentResult(gifticonOrder, response);
+    gifticonOrderService.saveIssueResult(gifticonOrder, response);
 
     return new GifticonOrderCreateResponse(gifticonOrder.getId(), response.isSuccess(), response.getMessage());
 }
@@ -97,7 +97,7 @@ public GifticonOrderCreateResponse execute(GifticonOrderCreateRequest request, L
 
 
 ### 마치며: 외부 API 연동에서 얻은 깨달음
-이번 기프티콘 결제 연동은 단순히 기능을 구현하는 것을 넘어,
+이번 기프티콘 발급 연동은 단순히 기능을 구현하는 것을 넘어,
 외부 시스템과 연동할 때 어떤 아키텍처를 선택해야 하는지 고민해 볼 수 있는 경험이었습니다.<br>
 
 특히 다음 세 가지 관점을 깊게 고민해 볼 수 있었습니다.<br>

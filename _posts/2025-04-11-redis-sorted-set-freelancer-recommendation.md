@@ -128,13 +128,28 @@ Redis Sorted Set은 score 기반으로 자동 정렬되는 자료구조입니다
 프리랜서의 종합 점수(리뷰, 등급, 활동량 등)를 미리 계산하여  
 **Redis ZSET에 저장**하도록 설계했습니다. <br>
 `ZADD freelancer:ranking score freelancerId` <br>
-이제 추천 요청이 들어오면 다음과 같이 상위 후보만 조회합니다.
+이제 추천 요청이 들어오면 요청 수(`N`)에 맞춰 상위 후보를 조회합니다.
 
 ```text
-# 점수가 높은 순으로 0위부터 19위까지 조회
-ZREVRANGE freelancer:ranking 0 19
+점수가 높은 순으로 상위 N명 조회
+ZREVRANGE freelancer:ranking 0 (N-1)
 ```
 Sorted Set 조회의 시간 복잡도는 O(log(N) + M)으로 DB Full Scan 대비 훨씬 효율적인 성능을 제공합니다.
+
+다만 운영 환경에서는 **항상 ZSET 데이터가 존재한다고 가정할 수 없습니다.**
+배포 직후, Redis 재시작 직후, 또는 초기 구간(콜드 스타트)에는 순위 데이터가 비어 있을 수 있기 때문입니다.
+
+그래서 추천 조회 로직을 다음과 같이 구성했습니다.
+
+```text
+1) Redis ZSET 조회 (ZREVRANGE 0 ~ N-1)
+2) 결과가 비어 있으면 DB 직접 조회 + 점수 계산
+3) 계산 결과를 Redis ZSET에 재적재 (ZADD)
+4) 사용자에게 추천 결과 응답
+```
+
+즉, **첫 요청이나 캐시 미스 상황에서는 DB가 안전망 역할을 수행**하고,
+이후 요청부터는 Redis에서 빠르게 상위 후보를 반환하는 구조입니다.
 
 ---
 
@@ -185,8 +200,7 @@ Redis는 인메모리 시스템이기 때문에 장애 가능성도 고려해야
 ---
 
 ## 최종 아키텍처
-<img src="/assets/img/posts/redis-sorted-set-freelancer-recommendation/img_3.png" width="50%" alt="Redis Sorted Set 기반 최종 아키텍처 다이어그램">
-
+<img src="/assets/img/posts/redis-sorted-set-freelancer-recommendation/img_3.png" width="100%" alt="Redis Sorted Set 기반 최종 아키텍처 다이어그램">
 
 ## 수치로 보는 개선 효과
 

@@ -99,7 +99,7 @@ public FlagDecision decide(String flagKey, UserContext ctx) {
 
 - **네트워크 없음**: Redis와 달리 인스턴스 내에서 처리되므로 조회 지연이 거의 없음
 - **W-TinyLFU 알고리즘**: Guava Cache 대비 캐시 히트율이 높고 메모리 효율이 좋음
-- **TTL / 만료 정책 내장**: 별도 구현 없이 stale 방지를 위한 자동 만료 적용 가능
+- **TTL / 만료 정책 내장**: 별도 구현 없이 오래된 캐시 자동 만료 적용 가능
 - **Spring 통합 용이**: `spring-boot-starter-cache`와 바로 연동되어 설정 부담이 낮음
 - **읽기 빈번 + 변경 드문 데이터에 최적**: A/B 실험 설정의 접근 패턴과 딱 맞는 구조
 

@@ -159,6 +159,56 @@ Sorted Set 조회의 시간 복잡도는 O(log(N) + M)으로 DB Full Scan 대비
 
 <img src="/assets/img/posts/redis-sorted-set-freelancer-recommendation/img_2.png" width="100%" alt="하이브리드 업데이트 전략 다이어그램">
 
+[//]: # (---)
+
+[//]: # (config:)
+
+[//]: # (theme: redux-color)
+
+[//]: # (  ---)
+
+[//]: # (sequenceDiagram)
+
+[//]: # ()
+[//]: # (      participant API as Server)
+
+[//]: # (      participant Redis as Redis Sorted Set)
+
+[//]: # (      participant DB as DB)
+
+[//]: # (      participant Batch as Batch Scheduler)
+
+[//]: # ()
+[//]: # (      rect rgba&#40;232, 245, 233, 0.75&#41;)
+
+[//]: # (          Note over API,Redis: 실시간 이벤트 업데이트)
+
+[//]: # (          API->>DB: 점수 변경 이벤트 수신 &#40;리뷰/활동/등급&#41;)
+
+[//]: # (          DB-->>API: 변경 대상 데이터)
+
+[//]: # (          API->>API: 대상 프리랜서 점수 재계산)
+
+[//]: # (          API->>Redis: Sorted Set 점수 업데이트)
+
+[//]: # (      end)
+
+[//]: # ()
+[//]: # (      rect rgba&#40;255, 248, 225, 0.8&#41;)
+
+[//]: # (          Note over Batch,Redis: 주기적 전체 동기화 &#40;Hourly&#41;)
+
+[//]: # (          Batch->>DB: 전체 프리랜서 데이터 조회)
+
+[//]: # (          DB-->>Batch: 전체 데이터)
+
+[//]: # (          Batch->>Batch: 전체 점수 재계산)
+
+[//]: # (          Batch->>Redis: Sorted Set 점수 일괄 업데이트)
+
+[//]: # (      end)
+
+
 
 ### 실시간 이벤트 업데이트
 

@@ -152,7 +152,8 @@ public MatchAcceptResult accept(Long requestId, Long freelancerId) {
 1. `tryAcquire` 성공 후 DB 트랜잭션에서 예외가 발생해도 `finally`에서 `release(permitId)`를 보장했습니다.
 2. 요청 타임아웃/서버 장애 같은 비정상 종료 케이스를 고려했습니다.  
    permit에 `leaseTime`을 두어, `release` 누락 시에도 자동 만료되도록 설계했습니다.
-3. 운영에서는 `availablePermits`/`usedPermits` 지표를 메트릭으로 노출해 누수 의심 상태를 탐지할 수 있게 했습니다.
+
+[//]: # (3. 운영에서는 `availablePermits`/`usedPermits` 지표를 메트릭으로 노출해 누수 의심 상태를 탐지할 수 있게 했습니다.)
 
 ### permit을 "남은 좌석"과 1:1로 맞추지 않은 이유
 

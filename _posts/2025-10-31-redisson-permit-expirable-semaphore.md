@@ -36,8 +36,58 @@ tags: [Java, SpringBoot, Redis, Redisson, MySQL, Concurrency]
 ## 해결 전략: Redis 세마포어 + DB 최종 검증(2단계)
 
 개선 구조는 아래와 같습니다.
-<img src="/assets/img/posts/semaphore/img_3.png" width="80%" alt="Redis 세마포어 기반 2단계 검증 처리 구조 다이어그램">
+<img src="/assets/img/posts/semaphore/img_3.png" width="100%" alt="Redis 세마포어 기반 2단계 검증 처리 구조 다이어그램">
 
+[//]: # (---)
+
+[//]: # (config:)
+
+[//]: # (theme: redux-color)
+
+[//]: # (---)
+
+[//]: # (sequenceDiagram)
+
+[//]: # (actor F as 프리랜서들 &#40;동시 N명&#41;)
+
+[//]: # (participant A as App Server                                                                                                                                                                         )
+
+[//]: # (participant R as Redis &#40;Semaphore&#41;)
+
+[//]: # (participant DB as MySQL                                                                                                                                                                             )
+
+[//]: # (F->>A: 매칭 수락 요청)
+
+[//]: # (A->>R: tryAcquire &#40;진입 시도&#41;)
+
+[//]: # ()
+[//]: # (      alt 좌석 고갈 &#40;진입권 획득 실패&#41;                                                                                                                                                                    )
+
+[//]: # (          rect rgb&#40;255, 220, 220&#41;)
+
+[//]: # (              R-->>A: 좌석 고갈 / 획득 실패                                                                                                                                                               )
+
+[//]: # (              A-->>F: 거절 &#40;잠시 후 재시도 안내&#41;)
+
+[//]: # (          end                                                                                                                                                                                             )
+
+[//]: # (      else 진입권 획득 성공)
+
+[//]: # (          rect rgb&#40;220, 255, 220&#41;                                                                                                                                                                         )
+
+[//]: # (              R-->>A: permitId 발급)
+
+[//]: # (              A->>DB: 정합성 검증 + 상태 업데이트                                                                                                                                                         )
+
+[//]: # (              DB-->>A: 완료)
+
+[//]: # (              A->>R: release&#40;permitId&#41;                                                                                                                                                                    )
+
+[//]: # (              A-->>F: 매칭 수락 완료)
+
+[//]: # (          end                                                                                                                                                                                             )
+
+[//]: # (      end)
 
 ### 설계 목표
 

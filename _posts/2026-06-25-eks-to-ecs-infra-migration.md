@@ -24,7 +24,8 @@ tags: [AWS, AI, DevOps, EKS, ECS, Terraform]
 
 - 인프라 비용이 환율 1,400원 후반 기준 **월평균 약 300만 원** 발생
 - 2025년 11월에는 최대 **USD 2,619(약 400만 원)** 까지 기록
-![img_1.png](img_1.png)
+
+![인프라 비용 추이](/assets/img/posts/eks-to-ecs-infra-migration/img_1.png)
 
 회사 상황이 어려워지는 가운데, 인프라를 담당하는 입장에서 비용 정리는 반드시 필요한 과제였습니다.
 EKS -> ECS 마이그레이션 이전에도 Jenkins -> Github Actions로 바꾸면서 인스턴스개수를 줄여가기 위해서 노력했지만
@@ -111,14 +112,18 @@ Ansible 대신 Terraform을 선택한 이유는, **`terraform plan`으로 클라
 인프라 변경으로 인한 오류가 없는지, 메모리나 CPU 사양에 따른 이슈가 없는지 확인하기 위해서였습니다. 그리고 이 관찰 기간에 실제로 몇 가지 운영 이슈가 드러났습니다.
 
 ### Spring 서버 메모리 OOM
-![img_3.png](img_3.png)
+
+![운영 1일차 메모리 사용률 포화](/assets/img/posts/eks-to-ecs-infra-migration/img_3.png)
+
 운영 1일 차에 Spring 서버의 메모리 사용률이 99% 이상까지 올라가며 OOM kill이 반복됐습니다.
 
 - **원인**: EKS에서는 JVM `Xmx` 값을 고정해 사용했지만, ECS 전환 후에는 **컨테이너 메모리 할당량에 따라 힙 크기가 결정**되면서 1024MB로는 부족했습니다.
 - **조치**: ECS 메모리를 3072MB로 상향하고, Native Memory Tracking으로 메모리 릭이 아니라 단순 할당 부족임을 검증했습니다.
 
 ### Spring 서버 Metaspace 누적 (ObjectMapper 리플렉션 inflation)
-![img_4.png](img_4.png)
+
+![Metaspace 계단식 우상향 그래프](/assets/img/posts/eks-to-ecs-infra-migration/img_4.png)
+
 OOM을 잡고 며칠 뒤, 재배포가 전혀 없었는데도 메모리 사용률이 계단식으로 우상향하는 패턴이 관찰됐습니다. 떨어지지 않고 오르기만 해서 릭을 의심했습니다.
 
 - 4일간 **MemoryUtilization 46% → 82%** (재배포 없이 같은 태스크가 4일째 RUNNING)
@@ -178,9 +183,11 @@ ECS Fargate 전환이 모든 상황에서 정답이라고 생각하지는 않습
 - **운영 단순화**: 노드 패치, Kubernetes 버전 업그레이드, 노드 스케일링 관리 부담 제거
 - **구성 일원화**: 설정과 인프라 구성을 Terraform·이미지·환경변수 중심으로 정리하고, 3개 서비스의 배포 파이프라인을 ECS 기준으로 통일
 
-![img.png](img.png)
+![전환 후 비용 절감 결과](/assets/img/posts/eks-to-ecs-infra-migration/img.png)
 
-![img_2.png](img_2.png)
+AI를 활용해 추출한 AWS 인프라 구성도입니다.
+
+![AI로 추출한 AWS 인프라 구성도](/assets/img/posts/eks-to-ecs-infra-migration/img_2.png)
 
 ---
 
